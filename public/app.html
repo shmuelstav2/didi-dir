@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מערכת ניהול עדר כבשים</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐑</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand" data-nav="dashboard">
+      <span class="brand-mark"><span class="logo-ph">🐑</span></span>
+      <span>מערכת ניהול</span>
+    </div>
+    <nav class="topnav" id="topnav"></nav>
+    <div class="top-side">
+      <div class="user-menu">
+        <button class="avatar" id="avatar" title="חשבון"></button>
+        <div class="menu-pop hidden" id="user-pop">
+          <div class="who" id="who"></div>
+          <button data-nav="users" id="users-link">ניהול משתמשים</button>
+          <button id="change-pw">שינוי סיסמה</button>
+          <button id="logout">יציאה</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<nav class="bottom-nav">
+  <div class="in" id="bottomnav"></div>
+</nav>
+
+<div id="modal-root"></div>
+<div id="toasts"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/views/dashboard.js"></script>
+<script src="/js/views/flock.js"></script>
+<script src="/js/views/animal.js"></script>
+<script src="/js/views/lambings.js"></script>
+<script src="/js/views/planning.js"></script>
+<script src="/js/views/users.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

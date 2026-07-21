@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>התחברות · מערכת ניהול עדר</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐑</text></svg>">
+</head>
+<body class="auth">
+  <div id="view-login">
+    <form class="login-card" id="login-form">
+      <div class="login-logo">🐑</div>
+      <h1>מערכת ניהול</h1>
+      <p class="sub">עדר כבשים · חוות גבעת האלה</p>
+
+      <div id="err" class="form-err hidden"></div>
+
+      <div class="fld">
+        <label for="username">שם משתמש</label>
+        <input id="username" name="username" autocomplete="username" required autofocus>
+      </div>
+      <div class="fld">
+        <label for="password">סיסמה</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="login-btn" id="submit" type="submit">התחבר</button>
+      <p class="login-foot">בעיה בהתחברות? פנו למנהל המערכת</p>
+    </form>
+  </div>
+
+<script>
+const form = document.getElementById('login-form');
+const err = document.getElementById('err');
+const btn = document.getElementById('submit');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  err.classList.add('hidden');
+  btn.disabled = true;
+  btn.textContent = 'מתחבר…';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'ההתחברות נכשלה');
+    location.href = '/app';
+  } catch (e2) {
+    err.textContent = e2.message;
+    err.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'התחבר';
+  }
+});
+</script>
+</body>
+</html>

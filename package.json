@@ -1,0 +1,25 @@
+{
+  "name": "didi-dir",
+  "version": "1.0.0",
+  "description": "מערכת ניהול עדר כבשים",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "USE_MEMORY_DB=1 node server.js",
+    "seed": "node scripts/seed.js",
+    "test": "node tests/api.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.8.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.1.2"
+  }
+}

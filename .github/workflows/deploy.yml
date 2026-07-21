@@ -1,0 +1,57 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  deploy:
+    name: Deploy to didi-dir
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://didi-dir.azurewebsites.net
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install production dependencies
+        run: npm ci --omit=dev
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: didi-dir
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_PROD }}
+
+      - name: Wait for the deployment to become healthy
+        run: |
+          for i in $(seq 1 30); do
+            body=$(curl -s https://didi-dir.azurewebsites.net/healthz || true)
+            echo "attempt $i: $body"
+            case "$body" in *'"status":"ok"'*) echo "production healthy"; exit 0;; esac
+            sleep 10
+          done
+          echo "production did not report healthy after deploy"; exit 1

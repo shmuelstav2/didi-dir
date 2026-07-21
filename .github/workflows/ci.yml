@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test suite
+        run: npm test
+
+      - name: Check the server boots and serves /healthz
+        run: |
+          USE_MEMORY_DB=1 PORT=8123 JWT_SECRET=ci-smoke node server.js &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8123/healthz > /dev/null; then
+              echo "healthz OK"; curl -s http://127.0.0.1:8123/healthz; exit 0
+            fi
+            sleep 2
+          done
+          echo "server did not become healthy"; exit 1
