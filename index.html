@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>didi-dir</title>
+<style>
+  :root{
+    --brand-900:#12233D;--brand-700:#1D3A63;--brand-500:#2F6FB5;
+    --page:#F5F7FA;--surface:#FFFFFF;
+    --ink-1:#151821;--ink-2:#4E5560;--ink-3:#858C97;
+    --hairline:#E3E7ED;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--page:#0E1117;--surface:#161A22;--ink-1:#EDF0F5;--ink-2:#AEB6C2;--ink-3:#7C8593;--hairline:#242A34}
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI",system-ui,"Arial Hebrew",Arial,sans-serif;
+    background:var(--page);color:var(--ink-1);font-size:15px;line-height:1.6;
+    min-height:100vh;display:flex;flex-direction:column;
+  }
+  .hero{
+    background:linear-gradient(140deg,var(--brand-900),var(--brand-500));color:#fff;
+    padding:64px 22px 72px;text-align:center;position:relative;overflow:hidden;
+  }
+  .hero::before,.hero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.06)}
+  .hero::before{width:340px;height:340px;top:-160px;inset-inline-start:-100px}
+  .hero::after{width:280px;height:280px;bottom:-150px;inset-inline-end:-80px}
+  .hero h1{font-size:clamp(26px,5vw,38px);font-weight:800;position:relative;z-index:1;letter-spacing:.5px}
+  .hero p{font-size:clamp(13px,2.6vw,16px);opacity:.9;margin-top:10px;position:relative;z-index:1}
+  .wrap{max-width:820px;margin:-28px auto 0;padding:0 20px 60px;position:relative;z-index:2;flex:1}
+  .card{
+    background:var(--surface);border:1px solid var(--hairline);border-radius:18px;
+    padding:28px 24px;box-shadow:0 6px 22px rgba(18,35,61,.08);
+  }
+  .card h2{font-size:18px;margin-bottom:10px}
+  .card p{color:var(--ink-2)}
+  footer{text-align:center;color:var(--ink-3);font-size:13px;padding:0 20px 28px}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <h1>didi-dir</h1>
+    <p>האתר עלה לאוויר</p>
+  </header>
+  <main class="wrap">
+    <div class="card">
+      <h2>שלד ראשוני</h2>
+      <p>הדף הזה הוא נקודת התחלה. התוכן האמיתי ייכנס לכאן בשלב הבא.</p>
+    </div>
+  </main>
+  <footer>GitHub Pages · shmuelstav2/didi-dir</footer>
+</body>
+</html>
