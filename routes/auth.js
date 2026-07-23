@@ -16,6 +16,27 @@ router.post('/login', wrap(async (req, res) => {
   res.json({ user: { username: user.username, name: user.name, role: user.role } });
 }));
 
+/** Public: tells the login page whether to render the Google button. */
+router.get('/config', (req, res) => {
+  res.json({ googleClientId: auth.googleClientId() });
+});
+
+router.post('/google', wrap(async (req, res) => {
+  const credential = (req.body || {}).credential;
+  if (!credential) return res.status(400).json({ error: 'חסר אסימון Google' });
+  let identity;
+  try {
+    identity = await auth.verifyGoogleToken(credential);
+  } catch (err) {
+    return res.status(401).json({ error: err.message });
+  }
+  const user = await auth.userFromGoogle(identity);
+  if (!user) return res.status(403).json({ error: `הכתובת ${identity.email} אינה מורשית. פנו למנהל המערכת.` });
+  auth.setCookie(res, auth.sign(user));
+  await getDb().collection('users').updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } });
+  res.json({ user: { username: user.username, name: user.name, role: user.role } });
+}));
+
 router.post('/logout', (req, res) => {
   auth.clearCookie(res);
   res.json({ ok: true });

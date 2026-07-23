@@ -289,6 +289,20 @@ test('viewer cannot write to the new modules', async () => {
   cookie = adminCookie;
 });
 
+test('auth config reports whether Google sign-in is configured', async () => {
+  const { status, data } = await req('GET', '/api/auth/config', undefined, { noCookie: true });
+  assert.equal(status, 200);
+  assert.ok('googleClientId' in data);
+});
+
+test('google sign-in rejects a missing or invalid credential', async () => {
+  const missing = await req('POST', '/api/auth/google', {}, { noCookie: true });
+  assert.equal(missing.status, 400);
+  // With no GOOGLE_CLIENT_ID configured in tests, a supplied token is refused.
+  const bad = await req('POST', '/api/auth/google', { credential: 'not-a-real-token' }, { noCookie: true });
+  assert.equal(bad.status, 401);
+});
+
 test('unknown API routes return a JSON 404', async () => {
   const { status, data } = await req('GET', '/api/nope');
   assert.equal(status, 404);

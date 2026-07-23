@@ -5,35 +5,170 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>התחברות · מערכת ניהול עדר</title>
 <link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/app.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐑</text></svg>">
+<style>
+  body.login { background: var(--brand-900); }
+  .login-wrap {
+    min-height: 100vh; min-height: 100dvh; display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  /* --- media panel (the real herd photo) --- */
+  .login-media {
+    position: relative; overflow: hidden;
+    background: #0f3d13 url('/img/herd.jpg') center/cover no-repeat;
+  }
+  .login-media::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(200deg, rgba(15,61,19,.30) 0%, rgba(15,61,19,.62) 55%, rgba(11,40,12,.86) 100%);
+  }
+  .media-copy {
+    position: absolute; z-index: 1; inset-inline-start: 44px; bottom: 40px; inset-inline-end: 44px; color: #fff;
+  }
+  .media-copy .kicker {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
+    background: rgba(255,255,255,.16); backdrop-filter: blur(6px);
+    padding: 7px 14px; border-radius: 99px; margin-bottom: 16px;
+  }
+  .media-copy h2 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; line-height: 1.15; letter-spacing: .3px; }
+  .media-copy p { font-size: 15px; opacity: .9; margin-top: 8px; max-width: 420px; }
+
+  /* --- form panel --- */
+  .login-panel {
+    display: grid; place-items: center; padding: 32px 24px;
+    background: var(--surface);
+  }
+  .login-box { width: 100%; max-width: 372px; }
+  .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+  .brand-badge {
+    width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center;
+    background: linear-gradient(140deg, var(--brand-700), var(--brand-500)); font-size: 26px; flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(27,94,32,.28);
+  }
+  .brand-row h1 { font-size: 19px; font-weight: 800; color: var(--ink-1); }
+  .brand-row p { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+
+  .login-box .welcome { font-size: 23px; font-weight: 800; margin-bottom: 4px; }
+  .login-box .welcome-sub { font-size: 13.5px; color: var(--ink-3); margin-bottom: 22px; }
+
+  .g-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+    border: 1px solid var(--hairline); background: #fff; border-radius: 12px; padding: 12px;
+    font-size: 14.5px; font-weight: 600; cursor: pointer; color: var(--ink-1); transition: background .12s, border-color .12s;
+  }
+  .g-btn:hover { background: var(--brand-50); border-color: var(--brand-500); }
+  .g-btn svg { width: 19px; height: 19px; flex-shrink: 0; }
+  #google-slot { margin-bottom: 4px; }
+
+  .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 12px; margin: 18px 0; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+
+  .fld { text-align: right; margin-bottom: 14px; }
+  .fld label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); display: block; margin-bottom: 6px; }
+  .in-wrap { position: relative; }
+  .in-wrap .ico { position: absolute; inset-inline-start: 13px; top: 50%; transform: translateY(-50%); font-size: 15px; opacity: .5; pointer-events: none; }
+  .fld input {
+    width: 100%; border: 1px solid var(--hairline); border-radius: 12px; padding: 12px 40px 12px 13px;
+    font-size: 15px; font-family: inherit; outline: none; background: var(--page); transition: border-color .12s, background .12s;
+  }
+  .fld input:focus { border-color: var(--brand-500); background: #fff; box-shadow: 0 0 0 3px var(--brand-100); }
+
+  .login-btn {
+    width: 100%; border: none; border-radius: 12px; padding: 13px; margin-top: 6px;
+    background: var(--brand-700); color: #fff; font-size: 15px; font-weight: 800; cursor: pointer;
+    transition: background .12s;
+  }
+  .login-btn:hover { background: var(--brand-600); }
+  .login-btn:disabled { opacity: .65; cursor: default; }
+
+  .form-err {
+    background: #FBE9E4; color: #9c3413; border-radius: 11px; padding: 10px 13px;
+    font-size: 12.5px; font-weight: 600; margin-bottom: 14px;
+  }
+  .hidden { display: none !important; }
+  .login-foot { font-size: 12px; color: var(--ink-3); margin-top: 20px; text-align: center; }
+
+  /* --- mobile: photo becomes the full backdrop, form floats on a card --- */
+  @media (max-width: 860px) {
+    body.login { background: #0f3d13 url('/img/herd.jpg') center/cover no-repeat fixed; }
+    .login-wrap { display: block; min-height: 100dvh; position: relative; }
+    .login-wrap::before {
+      content: ""; position: fixed; inset: 0;
+      background: linear-gradient(180deg, rgba(15,61,19,.55), rgba(11,40,12,.82));
+    }
+    .login-media { display: none; }
+    .login-panel {
+      position: relative; z-index: 1; background: transparent;
+      min-height: 100dvh; align-content: center; padding: 24px 18px calc(24px + env(safe-area-inset-bottom));
+    }
+    .login-box {
+      background: var(--surface); border-radius: 22px; padding: 28px 22px 24px;
+      box-shadow: 0 18px 50px rgba(8,26,10,.45); max-width: 420px;
+    }
+    .brand-row { justify-content: center; text-align: center; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .login-box .welcome, .login-box .welcome-sub { text-align: center; }
+  }
+  @media (max-width: 400px) { .login-box { padding: 24px 18px; } }
+</style>
 </head>
-<body class="auth">
-  <div id="view-login">
-    <form class="login-card" id="login-form">
-      <div class="login-logo">🐑</div>
-      <h1>מערכת ניהול</h1>
-      <p class="sub">עדר כבשים · חוות גבעת האלה</p>
-
-      <div id="err" class="form-err hidden"></div>
-
-      <div class="fld">
-        <label for="username">שם משתמש</label>
-        <input id="username" name="username" autocomplete="username" required autofocus>
+<body class="login">
+  <div class="login-wrap">
+    <div class="login-media">
+      <div class="media-copy">
+        <span class="kicker">🐑 חוות גבעת האלה</span>
+        <h2>מערכת ניהול עדר הכבשים</h2>
+        <p>ספר עדר, המלטות, תכנון, בריאות וכלכלה - הכל במקום אחד.</p>
       </div>
-      <div class="fld">
-        <label for="password">סיסמה</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-box">
+        <div class="brand-row">
+          <span class="brand-badge">🐑</span>
+          <div>
+            <h1>מערכת ניהול עדר</h1>
+            <p>חוות גבעת האלה</p>
+          </div>
+        </div>
+
+        <div class="welcome">ברוכים הבאים</div>
+        <div class="welcome-sub">התחברו כדי להמשיך לניהול העדר</div>
+
+        <div id="err" class="form-err hidden"></div>
+
+        <div id="google-slot" class="hidden">
+          <div id="g-btn-render"></div>
+          <div class="or">או</div>
+        </div>
+
+        <form id="login-form">
+          <div class="fld">
+            <label for="username">שם משתמש</label>
+            <div class="in-wrap">
+              <span class="ico">👤</span>
+              <input id="username" name="username" autocomplete="username" required autofocus>
+            </div>
+          </div>
+          <div class="fld">
+            <label for="password">סיסמה</label>
+            <div class="in-wrap">
+              <span class="ico">🔒</span>
+              <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+          </div>
+          <button class="login-btn" id="submit" type="submit">התחברות</button>
+        </form>
+
+        <p class="login-foot">בעיה בהתחברות? פנו למנהל המערכת</p>
       </div>
-      <button class="login-btn" id="submit" type="submit">התחבר</button>
-      <p class="login-foot">בעיה בהתחברות? פנו למנהל המערכת</p>
-    </form>
+    </div>
   </div>
 
 <script>
 const form = document.getElementById('login-form');
 const err = document.getElementById('err');
 const btn = document.getElementById('submit');
+
+function showErr(msg) { err.textContent = msg; err.classList.remove('hidden'); }
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -53,12 +188,45 @@ form.addEventListener('submit', async (e) => {
     if (!res.ok) throw new Error(data.error || 'ההתחברות נכשלה');
     location.href = '/app';
   } catch (e2) {
-    err.textContent = e2.message;
-    err.classList.remove('hidden');
+    showErr(e2.message);
     btn.disabled = false;
-    btn.textContent = 'התחבר';
+    btn.textContent = 'התחברות';
   }
 });
+
+// --- Google sign-in (only rendered when configured on the server) ---
+async function handleGoogle(response) {
+  err.classList.add('hidden');
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'התחברות Google נכשלה');
+    location.href = '/app';
+  } catch (e2) { showErr(e2.message); }
+}
+
+(async function initGoogle() {
+  try {
+    const cfg = await (await fetch('/api/auth/config')).json();
+    if (!cfg.googleClientId) return;
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true; s.defer = true;
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    window.google.accounts.id.initialize({ client_id: cfg.googleClientId, callback: handleGoogle });
+    window.google.accounts.id.renderButton(document.getElementById('g-btn-render'), {
+      theme: 'outline', size: 'large', width: 330, text: 'continue_with', locale: 'he', shape: 'pill',
+    });
+    document.getElementById('google-slot').classList.remove('hidden');
+  } catch (_) { /* Google optional — silently fall back to username/password */ }
+})();
 </script>
 </body>
 </html>
