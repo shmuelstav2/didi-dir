@@ -54,7 +54,7 @@ const UsersView = (() => {
         ${UI.select('role', 'תפקיד', [
           { value: 'manager', label: 'מנהל חווה' }, { value: 'viewer', label: 'צפייה בלבד' }, { value: 'admin', label: 'מנהל מערכת' },
         ], 'manager')}
-        ${UI.field('password', 'סיסמה', { type: 'password', required: true, hint: '6 תווים לפחות' })}
+        ${UI.field('password', 'סיסמה', { type: 'password', required: true, hint: '4 תווים לפחות' })}
       </div>`,
       onSubmit: async f => {
         await API.post('/api/auth/users', UI.formData(f));

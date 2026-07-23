@@ -93,7 +93,7 @@ const App = (() => {
         submitLabel: 'עדכון',
         body: `<div class="form-grid">
           ${UI.field('currentPassword', 'סיסמה נוכחית', { type: 'password', required: true, cls: 'full' })}
-          ${UI.field('newPassword', 'סיסמה חדשה', { type: 'password', required: true, cls: 'full', hint: '6 תווים לפחות' })}
+          ${UI.field('newPassword', 'סיסמה חדשה', { type: 'password', required: true, cls: 'full', hint: '4 תווים לפחות' })}
         </div>`,
         onSubmit: async form => {
           await API.post('/api/auth/password', UI.formData(form));

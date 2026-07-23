@@ -49,7 +49,7 @@ router.get('/me', (req, res) => {
 
 router.post('/password', auth.requireAuth, wrap(async (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
-  if (clean(newPassword).length < 6) return res.status(400).json({ error: 'סיסמה חדשה חייבת להיות באורך 6 תווים לפחות' });
+  if (clean(newPassword).length < 4) return res.status(400).json({ error: 'סיסמה חדשה חייבת להיות באורך 4 תווים לפחות' });
   const user = await auth.verifyCredentials(req.user.username, currentPassword);
   if (!user) return res.status(401).json({ error: 'הסיסמה הנוכחית שגויה' });
   await getDb().collection('users').updateOne(
@@ -72,7 +72,7 @@ router.post('/users', auth.requireAdmin, wrap(async (req, res) => {
   const name = clean(req.body.name) || username;
   const role = ['admin', 'manager', 'viewer'].includes(req.body.role) ? req.body.role : 'viewer';
   const password = clean(req.body.password);
-  if (!username || password.length < 6) return res.status(400).json({ error: 'שם משתמש וסיסמה (6+ תווים) נדרשים' });
+  if (!username || password.length < 4) return res.status(400).json({ error: 'שם משתמש וסיסמה (4+ תווים) נדרשים' });
   const exists = await getDb().collection('users').findOne({ username });
   if (exists) return res.status(409).json({ error: 'שם המשתמש כבר קיים' });
   const doc = { username, name, role, passwordHash: await auth.hashPassword(password), createdAt: new Date() };
