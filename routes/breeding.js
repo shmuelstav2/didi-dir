@@ -106,12 +106,17 @@ router.get('/treatments', wrap(async (req, res) => {
 router.post('/treatments', requireWrite, wrap(async (req, res) => {
   const doc = {
     title: clean(req.body.title),
-    type: ['vaccination', 'antibiotic', 'weaning', 'other'].includes(req.body.type) ? req.body.type : 'other',
+    type: ['vaccination', 'antibiotic', 'deworming', 'weaning', 'other'].includes(req.body.type) ? req.body.type : 'other',
     groupName: clean(req.body.groupName),
     animalTags: Array.isArray(req.body.animalTags) ? req.body.animalTags.map(clean).filter(Boolean) : [],
     count: num(req.body.count, 0),
     date: toDate(req.body.date) || new Date(),
     status: ['planned', 'in_progress', 'done'].includes(req.body.status) ? req.body.status : 'planned',
+    // Medical detail (optional): drug, dose, milk/meat withdrawal window, cost.
+    medication: clean(req.body.medication),
+    dose: clean(req.body.dose),
+    withdrawalDays: num(req.body.withdrawalDays, 0) || 0,
+    cost: num(req.body.cost, 0) || 0,
     notes: clean(req.body.notes),
     createdBy: req.user.username,
     createdAt: new Date(),
@@ -129,6 +134,10 @@ router.put('/treatments/:id', requireWrite, wrap(async (req, res) => {
   if (req.body.title) set.title = clean(req.body.title);
   if (req.body.date) set.date = toDate(req.body.date);
   if (req.body.notes !== undefined) set.notes = clean(req.body.notes);
+  if (req.body.medication !== undefined) set.medication = clean(req.body.medication);
+  if (req.body.dose !== undefined) set.dose = clean(req.body.dose);
+  if (req.body.withdrawalDays !== undefined) set.withdrawalDays = num(req.body.withdrawalDays, 0) || 0;
+  if (req.body.cost !== undefined) set.cost = num(req.body.cost, 0) || 0;
   const r = await getDb().collection('treatments').updateOne({ _id }, { $set: set });
   if (!r.matchedCount) return res.status(404).json({ error: 'טיפול לא נמצא' });
   res.json({ ok: true });

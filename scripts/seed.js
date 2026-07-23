@@ -154,17 +154,72 @@ async function seed({ force = false, quiet = false } = {}) {
 
   // --- treatments ---
   const treatments = [
-    { title: 'חיסון מחומשת', type: 'vaccination', groupName: 'אמהות ב׳', count: 45, date: addDays(now, 1), status: 'planned', notes: 'מנה שנתית' },
-    { title: 'טיפול אנטיביוטי — דלקת עטין', type: 'antibiotic', groupName: '', count: 3, date: addDays(now, 0), status: 'in_progress', notes: '3 אמהות במעקב' },
-    { title: 'גמילה מתוכננת', type: 'weaning', groupName: 'טלאים', count: 22, date: addDays(now, 4), status: 'planned', notes: 'גיל 60 יום' },
-    { title: 'חיסון לפני המלטה — קבוצה ג׳', type: 'vaccination', groupName: 'קבוצה ג׳', count: 38, date: addDays(now, -16), status: 'done', notes: '38/38 הושלם' },
+    { title: 'חיסון מחומשת', type: 'vaccination', groupName: 'אמהות ב׳', count: 45, date: addDays(now, 1), status: 'planned', medication: 'מחומשת', dose: '2 מ״ל', withdrawalDays: 0, cost: 680, notes: 'מנה שנתית' },
+    { title: 'טיפול אנטיביוטי — דלקת עטין', type: 'antibiotic', groupName: '', count: 3, date: addDays(now, 0), status: 'in_progress', medication: 'פניצילין', dose: '5 מ״ל', withdrawalDays: 7, cost: 210, notes: '3 אמהות במעקב' },
+    { title: 'תילוע עדר', type: 'deworming', groupName: 'אמהות א׳', count: 60, date: addDays(now, -6), status: 'done', medication: 'איברמקטין', dose: '1 מ״ל', withdrawalDays: 14, cost: 340, notes: '' },
+    { title: 'גמילה מתוכננת', type: 'weaning', groupName: 'טלאים', count: 22, date: addDays(now, 4), status: 'planned', medication: '', dose: '', withdrawalDays: 0, cost: 0, notes: 'גיל 60 יום' },
+    { title: 'חיסון לפני המלטה — קבוצה ג׳', type: 'vaccination', groupName: 'קבוצה ג׳', count: 38, date: addDays(now, -16), status: 'done', medication: 'מחומשת', dose: '2 מ״ל', withdrawalDays: 0, cost: 570, notes: '38/38 הושלם' },
   ].map(t => ({ ...t, animalTags: [], createdBy: 'seed', createdAt: now }));
+
+  // --- feed records ---
+  const feedRecords = [];
+  for (const ft of ['תערובת', 'שחת', 'גרעינים']) {
+    for (let k = 0; k < 4; k++) {
+      feedRecords.push({
+        date: addDays(now, -intBetween(2, 120)), feedType: ft, direction: 'in',
+        quantityKg: intBetween(800, 3000), cost: intBetween(1800, 6500),
+        supplier: pick(['ספקה חקלאית', 'מכון תערובת דרום', 'קואופ אזורי']), groupName: '',
+        notes: '', createdBy: 'seed', createdAt: now,
+      });
+    }
+    for (let k = 0; k < 6; k++) {
+      feedRecords.push({
+        date: addDays(now, -intBetween(1, 60)), feedType: ft, direction: 'out',
+        quantityKg: intBetween(200, 900), cost: 0, supplier: '',
+        groupName: pick(EWE_GROUPS), notes: '', createdBy: 'seed', createdAt: now,
+      });
+    }
+  }
+
+  // --- sales (this season) ---
+  const soldTags = ewes.slice(190, 205);
+  const salesDocs = [];
+  for (let k = 0; k < 6; k++) {
+    const tags = [String(++lambSeq), String(++lambSeq)];
+    const kg = +between(60, 120).toFixed(1);
+    const perKg = +between(28, 36).toFixed(2);
+    salesDocs.push({
+      date: addDays(seasonStart, intBetween(20, daysSinceSeason - 1)),
+      buyer: pick(['אטליז מרכזי', 'סוחר בקר דרום', 'שוק העיר', 'מטבחיים אזורי']),
+      animalTags: tags, extraHeads: 0,
+      totalWeightKg: kg, pricePerKg: perKg, pricePerHead: 0,
+      total: +(kg * perKg).toFixed(2), notes: '', createdBy: 'seed', createdAt: now,
+    });
+  }
+
+  // --- purchases (this season) ---
+  const purchaseDocs = [{
+    date: addDays(seasonStart, 12), seller: 'משק גידור', newAnimals: [], extraHeads: 8,
+    total: 9600, notes: 'רכש עתודה', createdBy: 'seed', createdAt: now,
+  }];
+
+  // --- manual transactions ---
+  const txnDocs = [
+    { kind: 'income', date: addDays(now, -30), category: 'סובסידיה', description: 'תמיכת משרד החקלאות', amount: 4200, createdBy: 'seed', createdAt: now },
+    { kind: 'expense', date: addDays(now, -18), category: 'ציוד', description: 'מנורות חימום ומחיצות', amount: 1350, createdBy: 'seed', createdAt: now },
+    { kind: 'expense', date: addDays(now, -9), category: 'עבודה', description: 'עוזר עונתי', amount: 2800, createdBy: 'seed', createdAt: now },
+  ];
 
   await db.collection('animals').insertMany(animals);
   await db.collection('events').insertMany(events);
   await db.collection('lambings').insertMany(lambings);
   await db.collection('breeding_groups').insertMany(groups);
   await db.collection('treatments').insertMany(treatments);
+  await db.collection('feed_records').insertMany(feedRecords);
+  await db.collection('sales').insertMany(salesDocs);
+  await db.collection('purchases').insertMany(purchaseDocs);
+  await db.collection('transactions').insertMany(txnDocs);
+  void soldTags;
 
   // demo users beyond the bootstrap admin
   const users = db.collection('users');
@@ -183,6 +238,7 @@ async function seed({ force = false, quiet = false } = {}) {
   const summary = {
     animals: animals.length, events: events.length, lambings: lambings.length,
     groups: groups.length, treatments: treatments.length,
+    feed: feedRecords.length, sales: salesDocs.length, purchases: purchaseDocs.length, transactions: txnDocs.length,
   };
   log('[seed] done', summary);
   return summary;

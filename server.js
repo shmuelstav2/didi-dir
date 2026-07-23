@@ -55,6 +55,10 @@ app.use('/api/animals', require('./routes/animals'));
 app.use('/api/lambings', require('./routes/lambings'));
 app.use('/api/breeding', require('./routes/breeding'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/feed', require('./routes/feed'));
+app.use('/api/sales', require('./routes/sales'));
+app.use('/api/purchases', require('./routes/purchases'));
+app.use('/api/finance', require('./routes/finance'));
 
 // --- static UI ---
 const PUBLIC_DIR = path.join(__dirname, 'public');

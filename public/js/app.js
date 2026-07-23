@@ -7,6 +7,11 @@ const App = (() => {
     flock: { label: 'ספר עדר', icon: '🐑', view: () => FlockView, nav: true },
     lambings: { label: 'המלטות', icon: '🍼', view: () => LambingsView, nav: true },
     planning: { label: 'תכנון', icon: '📅', view: () => PlanningView, nav: true },
+    health: { label: 'טיפול רפואי', icon: '⚕️', view: () => HealthView, nav: true },
+    feed: { label: 'מזון', icon: '🌾', view: () => FeedView, nav: true },
+    sales: { label: 'מכירות', icon: '💰', view: () => SalesView, nav: true },
+    purchases: { label: 'קניה', icon: '🛒', view: () => PurchasesView, nav: true },
+    finance: { label: 'כלכלי', icon: '📈', view: () => FinanceView, nav: true },
     animal: { label: 'כרטיס חיה', icon: '🐑', view: () => AnimalView, nav: false },
     users: { label: 'משתמשים', icon: '👥', view: () => UsersView, nav: false },
   };

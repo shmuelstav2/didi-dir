@@ -199,6 +199,96 @@ test('deleting an animal removes its events', async () => {
   assert.equal(gone.status, 404);
 });
 
+test('feed: deliveries and consumption compute live stock per type', async () => {
+  const inRes = await req('POST', '/api/feed', { feedType: 'תערובת', direction: 'in', quantityKg: 1000, cost: 2500, date: '2026-07-01' });
+  assert.equal(inRes.status, 201);
+  await req('POST', '/api/feed', { feedType: 'תערובת', direction: 'out', quantityKg: 300, date: '2026-07-10' });
+  const { data } = await req('GET', '/api/feed/stock');
+  const row = data.stock.find(s => s.feedType === 'תערובת');
+  assert.ok(row, 'expected a תערובת stock row');
+  assert.equal(row.stockKg, 700);
+  assert.equal(row.cost, 2500);
+});
+
+test('feed rejects a non-positive quantity', async () => {
+  const { status } = await req('POST', '/api/feed', { feedType: 'שחת', direction: 'in', quantityKg: 0 });
+  assert.equal(status, 400);
+});
+
+test('sale marks its animals sold and books revenue', async () => {
+  await req('POST', '/api/animals', { tag: 'sell-1', sex: 'M' });
+  await req('POST', '/api/animals', { tag: 'sell-2', sex: 'M' });
+  const res = await req('POST', '/api/sales', {
+    buyer: 'אטליז מרכזי', date: '2026-07-15',
+    animalTags: ['sell-1', 'sell-2'], totalWeightKg: 100, pricePerKg: 30,
+  });
+  assert.equal(res.status, 201);
+  assert.equal(res.data.sale.total, 3000);
+
+  const a = await req('GET', '/api/animals/sell-1');
+  assert.equal(a.data.animal.status, 'sold');
+
+  const stats = await req('GET', '/api/sales/stats?from=2026-01-01&to=2026-12-31');
+  assert.equal(stats.data.revenue, 3000);
+  assert.equal(stats.data.heads, 2);
+});
+
+test('sale total can be given explicitly, and cancelling reactivates animals', async () => {
+  const res = await req('POST', '/api/sales', { buyer: 'x', date: '2026-07-16', animalTags: ['sell-1'], total: 500 });
+  assert.equal(res.data.sale.total, 500);
+  const del = await req('DELETE', `/api/sales/${res.data.sale._id}`);
+  assert.equal(del.status, 200);
+  const a = await req('GET', '/api/animals/sell-1');
+  assert.equal(a.data.animal.status, 'active', 'cancelling a sale should reactivate the animal');
+});
+
+test('purchase registers new animals in the flock and books the cost', async () => {
+  const res = await req('POST', '/api/purchases', {
+    seller: 'משק גידור', date: '2026-07-05', total: 4800,
+    animals: [{ tag: 'buy-1', sex: 'F', weightKg: 55 }, { tag: 'buy-2', sex: 'F' }],
+  });
+  assert.equal(res.status, 201);
+  assert.equal(res.data.createdCount, 2);
+
+  const a = await req('GET', '/api/animals/buy-1');
+  assert.equal(a.data.animal.origin, 'purchased');
+  assert.equal(a.data.animal.status, 'active');
+
+  const stats = await req('GET', '/api/purchases/stats?from=2026-01-01&to=2026-12-31');
+  assert.equal(stats.data.cost, 4800);
+});
+
+test('finance summary nets income against expenses across modules', async () => {
+  await req('POST', '/api/finance/transactions', { kind: 'income', category: 'סובסידיה', amount: 1000, date: '2026-07-20' });
+  await req('POST', '/api/finance/transactions', { kind: 'expense', category: 'ציוד', amount: 200, date: '2026-07-20' });
+  const { data } = await req('GET', '/api/finance/summary?from=2026-01-01&to=2026-12-31');
+  // income: sales 3000 (the explicit-total 500 sale was cancelled) + manual 1000
+  // expense: feed 2500 + purchase 4800 + manual 200 (treatments have no cost here)
+  assert.equal(data.totalIncome, 4000);
+  assert.equal(data.totalExpense, 7500);
+  assert.equal(data.net, -3500);
+});
+
+test('treatment stores medical fields and cost', async () => {
+  const res = await req('POST', '/api/breeding/treatments', {
+    title: 'חיסון', type: 'vaccination', date: '2026-07-18',
+    medication: 'מחומשת', dose: '2 מ״ל', withdrawalDays: 7, cost: 120,
+  });
+  assert.equal(res.status, 201);
+  assert.equal(res.data.treatment.withdrawalDays, 7);
+  assert.equal(res.data.treatment.cost, 120);
+});
+
+test('viewer cannot write to the new modules', async () => {
+  const adminCookie = cookie;
+  await req('POST', '/api/auth/login', { username: 'ro', password: 'test1234' });
+  const feed = await req('POST', '/api/feed', { feedType: 'x', direction: 'in', quantityKg: 5 });
+  assert.equal(feed.status, 403);
+  const sale = await req('POST', '/api/sales', { animalTags: ['sell-2'], total: 100 });
+  assert.equal(sale.status, 403);
+  cookie = adminCookie;
+});
+
 test('unknown API routes return a JSON 404', async () => {
   const { status, data } = await req('GET', '/api/nope');
   assert.equal(status, 404);
