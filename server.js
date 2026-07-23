@@ -112,7 +112,9 @@ async function start() {
   await connect();
   await bootstrapAdmin();
   if (process.env.SEED_ON_START === '1') {
-    await require('./scripts/seed').seed({ quiet: true });
+    // SEED_FORCE wipes and re-seeds (demo environments only) so newly added
+    // collections get demo data even when a flock already exists.
+    await require('./scripts/seed').seed({ quiet: true, force: process.env.SEED_FORCE === '1' });
   }
   return new Promise(resolve => {
     const server = app.listen(PORT, () => {
