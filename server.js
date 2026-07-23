@@ -23,9 +23,20 @@ app.get('/healthz', async (req, res) => {
   const started = Date.now();
   try {
     await getDb().command({ ping: 1 });
-    res.json({ status: 'ok', env: ENV_LABEL, db: DB_NAME, mongoMs: Date.now() - started, uptimeSec: Math.round(process.uptime()) });
+    const ms = Date.now() - started;
+    // The `mongo` block matches the lulim-monitoring dashboard's healthz
+    // convention so this app can be probed by the same uptime dashboard.
+    res.json({
+      status: 'ok', env: ENV_LABEL, db: DB_NAME,
+      mongo: { ok: true, ms },
+      mongoMs: ms, uptimeSec: Math.round(process.uptime()),
+    });
   } catch (err) {
-    res.status(503).json({ status: 'degraded', env: ENV_LABEL, error: err.message });
+    res.status(503).json({
+      status: 'degraded', env: ENV_LABEL,
+      mongo: { ok: false, error: err.message },
+      error: err.message,
+    });
   }
 });
 
